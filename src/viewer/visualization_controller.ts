@@ -13,21 +13,29 @@ declare global {
   }
 }
 
-
 import TurndownService from "turndown";
 
 const turndownService = new TurndownService();
 
 const formatTweet = tweet =>
-  `@${tweet.username}: ${turndownService.turndown(tweet.bodyHtml)}\n`;
+  `@${tweet.username}: ${turndownService.turndown(tweet.bodyHtml)}`;
 
-const formatTweets = (node, indent = 0) => {
+const formatTweets = (node, initial = false, indent = 1) => {
   let out = "";
-  out += "  ".repeat(indent) + "- " + formatTweet(node.tweet);
-  console.log(node, indent, out);
+  if (initial) {
+    out = `- ${formatTweet(node.tweet)} - [[Twitter thread]] by [[${
+      node.tweet.name
+    }]], [link](${node.tweet.getUrl()})\n`;
+  } else {
+    out = "  ".repeat(indent) + "- " + formatTweet(node.tweet)+'\n';
+  }
+
   if (node.children) {
+    console.log(Array.from(node.children));
+    const newIndent =
+      Array.from(node.children).length === 1 ? indent : indent + 1;
     out += Array.from(node.children)
-      .map(([k, v]) => formatTweets(v, indent + 1))
+      .map(([k, v]) => formatTweets(v, false, newIndent))
       .join("\n");
   }
   return out;
@@ -105,14 +113,14 @@ export class VisualizationController {
   expandAll() {
     if (this.expandingTimer === null) {
       this.expandButton.textContent = cancelExpandText;
-      this.expandingTimer = setInterval(this.expandOne.bind(this), 1000);
+      this.expandingTimer = setInterval(this.expandOne.bind(this), 200);
     } else {
       this.stopExpanding();
     }
   }
 
   copyClipboard() {
-    navigator.clipboard.writeText(formatTweets(this.tweetTree.root));
+    navigator.clipboard.writeText(formatTweets(this.tweetTree.root, true));
   }
 
   constructor(server: TweetServer, offline = false) {
