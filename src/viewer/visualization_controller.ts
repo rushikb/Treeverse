@@ -6,6 +6,7 @@ import { Toolbar } from "./toolbar";
 import { SerializedTweetNode } from "./serialize";
 import * as d3 from "d3";
 import { tree } from "d3";
+import { compact } from "lodash";
 
 declare global {
   interface Navigator {
@@ -19,9 +20,17 @@ declare global {
 const formatTweet = (tweet, other) => {
   let md = tweet.bodyText;
   if (tweet.entities.user_mentions) {
-    tweet.entities.user_mentions.forEach(
-      user => (md = md.split("@" + user.screen_name).join(""))
-    );
+    console.log(tweet.entities.user_mentions);
+    if (
+      tweet.entities.user_mentions.some(
+        user => user.screen_name === "threadreaderapp"
+      )
+    ) {
+      return false;
+    }
+    tweet.entities.user_mentions.forEach(user => {
+      md = md.split("@" + user.screen_name).join("");
+    });
   }
   if (tweet.entities.urls) {
     tweet.entities.urls.forEach(url => {
@@ -35,6 +44,7 @@ const formatTweet = (tweet, other) => {
   return `${other ? `[[${tweet.name}]]: ` : ""}${md
     .replace(/\s([@#][\w_-]+)/g, "")
     .replace(/^\@.+?\s/g, "")
+    .replace(/^[\•\-\*]/gm, "")
     .trim()}`;
 };
 
@@ -46,6 +56,9 @@ const formatTweets = (
   hasSiblings = false
 ) => {
   let out = "";
+  if (node.tweet.username === "threadreaderapp") {
+    return false;
+  }
   if (initial) {
     out = `- ${formatTweet(node.tweet, false)} - [[Twitter thread]] by [[${
       node.tweet.name
@@ -57,11 +70,26 @@ const formatTweets = (
       node.tweet.username !== initialAuthor
     );
     if (tweetText) {
-      out = "  ".repeat(indent) + "- " + tweetText + "\n";
+      out =
+        "  ".repeat(indent) +
+        "- " +
+        tweetText
+          .split(/\n+/)
+          .map(f => f.trim())
+          .join("\n" + "  ".repeat(indent + 1) + "- ") +
+        "\n";
+    }
+    if (node.tweet.entities.media) {
+      node.tweet.entities.media.forEach(m => {
+        out +=
+          "  ".repeat(indent + 1) + "- " + "![](" + m.media_url_https + ")\n";
+      });
     }
   }
   if (node.children) {
-    const children = Array.from(node.children);
+    const children = Array.from(node.children).filter(
+      x => x[1].tweet.username !== "threadreaderapp"
+    );
     const multiChildren = children.length > 1;
     const newIndent = multiChildren || hasSiblings ? indent + 1 : indent;
     out += children
