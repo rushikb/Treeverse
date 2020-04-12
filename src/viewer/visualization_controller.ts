@@ -173,7 +173,7 @@ export class VisualizationController {
   expandAll() {
     if (this.expandingTimer === null) {
       this.expandButton.textContent = cancelExpandText;
-      this.expandingTimer = setInterval(this.expandOne.bind(this), 200);
+      this.expandingTimer = setInterval(this.expandOne.bind(this), 1000);
     } else {
       this.stopExpanding();
     }
