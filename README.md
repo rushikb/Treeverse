@@ -1,3 +1,7 @@
+// This is a fork of Treeverse to support Roam Research output. This has not been published to the Chrome/Firefox stores, you need to build it manually. Download, run `yarn install`, and then `sh build_extensions.sh`. You can then go to chrome://extensions, turn on developer mode, click Load unpacked, and find the directory dist/extension_chrome.
+
+To run, just click the icon when you're on the first tweet in a Twitter thread. Click expand all to see all the replies, and then Copy bullet list to clipboard. You can then just paste it into Roam, or another Markdown editor (works best with a bullet-list style tool). //
+
 ![NetflixOSS Lifecycle](https://img.shields.io/osslifecycle/paulgb/Treeverse.svg)
 
 ![Treeverse Icon](extension/common/icons/32.png) Treeverse
