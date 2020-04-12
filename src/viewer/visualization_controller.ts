@@ -11,31 +11,63 @@ declare global {
   interface Navigator {
     clipboard: any;
   }
+  interface Window {
+    t: any;
+  }
 }
 
-import TurndownService from "turndown";
+const formatTweet = (tweet, other) => {
+  let md = tweet.bodyText;
+  if (tweet.entities.user_mentions) {
+    tweet.entities.user_mentions.forEach(
+      user => (md = md.split("@" + user.screen_name).join(""))
+    );
+  }
+  if (tweet.entities.urls) {
+    tweet.entities.urls.forEach(url => {
+      md = md.split(url.url).join(url.expanded_url);
+    });
+  }
+  md = md.trim();
+  if (md === "") {
+    return undefined;
+  }
+  return `${other ? `[[${tweet.name}]]: ` : ""}${md
+    .replace(/\s([@#][\w_-]+)/g, "")
+    .replace(/^\@.+?\s/g, "")
+    .trim()}`;
+};
 
-const turndownService = new TurndownService();
-
-const formatTweet = tweet =>
-  `@${tweet.username}: ${turndownService.turndown(tweet.bodyHtml)}`;
-
-const formatTweets = (node, initial = false, indent = 1) => {
+const formatTweets = (
+  node,
+  initial = false,
+  indent = 1,
+  initialAuthor = "",
+  hasSiblings = false
+) => {
   let out = "";
   if (initial) {
-    out = `- ${formatTweet(node.tweet)} - [[Twitter thread]] by [[${
+    out = `- ${formatTweet(node.tweet, false)} - [[Twitter thread]] by [[${
       node.tweet.name
     }]], [link](${node.tweet.getUrl()})\n`;
+    initialAuthor = node.tweet.username;
   } else {
-    out = "  ".repeat(indent) + "- " + formatTweet(node.tweet)+'\n';
+    const tweetText = formatTweet(
+      node.tweet,
+      node.tweet.username !== initialAuthor
+    );
+    if (tweetText) {
+      out = "  ".repeat(indent) + "- " + tweetText + "\n";
+    }
   }
-
   if (node.children) {
-    console.log(Array.from(node.children));
-    const newIndent =
-      Array.from(node.children).length === 1 ? indent : indent + 1;
-    out += Array.from(node.children)
-      .map(([k, v]) => formatTweets(v, false, newIndent))
+    const children = Array.from(node.children);
+    const multiChildren = children.length > 1;
+    const newIndent = multiChildren || hasSiblings ? indent + 1 : indent;
+    out += children
+      .map(([k, v]) =>
+        formatTweets(v, false, newIndent, initialAuthor, multiChildren)
+      )
       .join("\n");
   }
   return out;
@@ -61,9 +93,9 @@ export class VisualizationController {
   fetchTweets(tweetId: string) {
     this.server.requestTweets(tweetId, null).then(tweetSet => {
       let tweetTree = TweetTree.fromTweetSet(tweetSet);
-      document.getElementsByTagName(
-        "title"
-      )[0].innerText = `${tweetTree.root.tweet.username} - "${tweetTree.root.tweet.bodyText}" in Treeverse`;
+      document.getElementsByTagName("title")[0].innerText = `${
+        tweetTree.root.tweet.username
+      } - "${tweetTree.root.tweet.bodyText}" in Treeverse`;
 
       this.setInitialTweetData(tweetTree);
     });
