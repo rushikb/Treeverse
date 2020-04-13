@@ -59,25 +59,26 @@ const formatTweets = (
   if (node.tweet.username === "threadreaderapp") {
     return false;
   }
+
+  const tweetTextRaw = formatTweet(
+    node.tweet,
+    initialAuthor === "" || node.tweet.username !== initialAuthor
+  );
+  const tweetText = tweetTextRaw
+    ? tweetTextRaw
+        .split(/\n+/)
+        .map(f => f.trim())
+        .join("\n" + "  ".repeat(indent + 1) + "- ")
+    : false;
+
   if (initial) {
-    out = `- ${formatTweet(node.tweet, false)} - [[Twitter thread]] by [[${
+    out = `- ${tweetText} - [[Twitter thread]] by [[${
       node.tweet.name
     }]], [link](${node.tweet.getUrl()})\n`;
     initialAuthor = node.tweet.username;
   } else {
-    const tweetText = formatTweet(
-      node.tweet,
-      node.tweet.username !== initialAuthor
-    );
     if (tweetText) {
-      out =
-        "  ".repeat(indent) +
-        "- " +
-        tweetText
-          .split(/\n+/)
-          .map(f => f.trim())
-          .join("\n" + "  ".repeat(indent + 1) + "- ") +
-        "\n";
+      out = "  ".repeat(indent) + "- " + tweetText + "\n";
     }
     if (node.tweet.entities.media) {
       node.tweet.entities.media.forEach(m => {
