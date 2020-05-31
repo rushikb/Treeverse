@@ -6,8 +6,91 @@ import { Toolbar } from './toolbar'
 import { SerializedTweetNode } from './serialize'
 import * as d3 from 'd3'
 import { ContentProxy } from './proxy'
+import { compact } from 'lodash'
 
 export type PointNode = d3.HierarchyPointNode<TweetNode>;
+
+const formatTweet = (tweet, other) => {
+  let md = tweet.bodyText;
+  if (tweet.entities.user_mentions) {
+    if (
+      tweet.entities.user_mentions.some(
+        user => user.screen_name === "threadreaderapp"
+      )
+    ) {
+      return false;
+    }
+    // tweet.entities.user_mentions.forEach(user => {
+    //   md = md.split("@" + user.screen_name).join("");
+    // });
+  }
+  if (tweet.entities.urls) {
+    tweet.entities.urls.forEach(url => {
+      md = md.split(url.url).join(url.expanded_url);
+    });
+  }
+  md = md.trim();
+  if (md === "") {
+    return undefined;
+  }
+  return `${other ? `[[${tweet.name}]]: ` : ""}${md
+    .replace(/^(\@.+?\s)+/g, "")
+    .replace(/^[\•\-\*]/gm, "")
+    .trim()}`;
+};
+const formatTweets = (
+  node,
+  initial = false,
+  indent = 1,
+  initialAuthor = "",
+  hasSiblings = false
+) => {
+  let out = "";
+  if (node.tweet.username === "threadreaderapp") {
+    return false;
+  }
+
+  const tweetTextRaw = formatTweet(
+    node.tweet,
+    initialAuthor === "" || node.tweet.username !== initialAuthor
+  );
+  const tweetText = tweetTextRaw
+    ? tweetTextRaw
+        .split(/\n+/)
+        .map(f => f.trim())
+        .join("\n" + "  ".repeat(indent + 1) + "- ")
+    : false;
+
+  if (initial) {
+    out = `- ${tweetText} - [[Twitter thread]] by [[${
+      node.tweet.name
+    }]], [link](${node.tweet.getUrl()})\n`;
+    initialAuthor = node.tweet.username;
+  } else {
+    if (tweetText) {
+      out = "  ".repeat(indent) + "- " + tweetText + "\n";
+    }
+    if (node.tweet.entities.media) {
+      node.tweet.entities.media.forEach(m => {
+        out +=
+          "  ".repeat(indent + 1) + "- " + "![](" + m.media_url_https + ")\n";
+      });
+    }
+  }
+  if (node.children) {
+    const children = Array.from(node.children).filter(
+      x => x[1].tweet.username !== "threadreaderapp"
+    );
+    const multiChildren = children.length > 1;
+    const newIndent = multiChildren || hasSiblings ? indent + 1 : indent;
+    out += children
+      .map(([k, v]) =>
+        formatTweets(v, false, newIndent, initialAuthor, multiChildren)
+      )
+      .join("\n");
+  }
+  return out;
+};
 
 const expandText = 'Expand All'
 const cancelExpandText = 'Stop Expanding'
@@ -77,6 +160,10 @@ export class VisualizationController {
         this.expandingTimer = null
     }
 
+    copyClipboard() {
+        navigator.clipboard.writeText(formatTweets(this.tweetTree.root, true)||"");
+    }
+
     expandAll() {
         if (this.expandingTimer === null) {
             this.expandButton.textContent = cancelExpandText
@@ -96,6 +183,7 @@ export class VisualizationController {
         this.toolbar = new Toolbar(document.getElementById('toolbar'))
         if (!offline) {
             this.toolbar.addButton('Create shareable link', this.shareClicked.bind(this))
+            this.toolbar.addButton('Copy to clipboard', this.copyClipboard.bind(this))
             this.expandButton = this.toolbar.addButton('Expand All', this.expandAll.bind(this))
         }
 

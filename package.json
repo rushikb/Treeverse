@@ -15,6 +15,7 @@
   "author": "Paul Butler",
   "license": "MIT",
   "dependencies": {
-    "d3": "^5.15.1"
+    "d3": "^5.15.1",
+    "lodash": "^4.17.15"
   }
 }

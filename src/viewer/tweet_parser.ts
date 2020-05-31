@@ -22,6 +22,7 @@ export class Tweet {
     /** Whether to render the tweet as right-to-left. */
     rtl: boolean;
     parent: string;
+    entities: any;
 
     images: string[] = [];
 
@@ -91,6 +92,7 @@ export namespace TweetParser {
             tweet.parent = entry.in_reply_to_status_id_str
             tweet.time = new Date(entry.created_at).getTime()
             tweet.replies = entry.reply_count
+            tweet.entities = entry.entities
 
             tweets.push(tweet)
         }

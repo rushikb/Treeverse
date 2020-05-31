@@ -17,6 +17,7 @@ export interface APIResponse {
                 retweet_count: number,
                 source: string,
                 user_id_str: string
+                entities: any
             }
         },
         users: {
