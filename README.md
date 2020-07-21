@@ -9,31 +9,13 @@ It is available as a browser extension for Chrome and Firefox.
 
 Installation
 ------------
-
-### Chrome Users:
-
-<a href="https://chrome.google.com/webstore/detail/treeverse/aahmjdadniahaicebomlagekkcnlcila?hl=en">
-    <img src="images/download_chrome.png" alt="Download Treeverse for Chrome" style="width: 206px; height: 58px">
-</a>
-
-### Firefox Users:
-
-<a href="https://addons.mozilla.org/en-US/firefox/addon/treeverse/">
-    <img src="images/download_moz.png" alt="Download Treeverse for Firefox" style="width: 172px; height: 60px">
-</a>
+for the Roam Toolkie
 
 Introduction
 ------------
+- To run, just click the icon when you're on the first tweet in a Twitter thread. Click expand all to see all the replies, and then Copy bullet list to clipboard. You can then just paste it into Roam, or another Markdown editor (works best with a bullet-list style tool). //
+- This is a fork of Treeverse to support Roam Research output. This has not been published to the Chrome/Firefox stores, you need to build it manually. Download, run `yarn install`, and then `sh build_extensions.sh`. You can then go to chrome://extensions, turn on developer mode, click Load unpacked, and find the directory dist/extension_chrome.
 
-After installing Treeverse for your browser, open Twitter and click on the tweet that you would like to visualize the conversation of (or try [this one](https://twitter.com/paulgb/status/977652162137395201).)
-
-If you’re using Chrome, the icon for Treeverse should turn from grey to blue in your browser. Click it to enter Treeverse.
-
-<img src="images/chrome_treeverse.gif" alt="Opening Treeverse in Chrome" style="width: 320px; height: 180px;" />
-
-If you're using Firefox, the icon will be hidden until you open a tweet, and then it will appear in the address bar.
-
-<img src="images/moz_treeverse.gif" alt="Opening Treeverse in Firefox" style="width: 320px; height: 180px;" />
 
 Exploring the Conversation
 --------------------------
@@ -71,15 +53,3 @@ users. Access to the shared link server may be tracked to prevent abuse.
 
 Additionally, when Treeverse runs it loads a font hosted by Google Fonts (https://fonts.google.com/). Google may track this download.
 
-Bugs & Contact
---------------
-
-Tweet [@paulgb](https://twitter.com/paulgb) or [report on GitHub](https://github.com/paulgb/treeverse/issues).
-
-Credits
--------
-
-Icon created by [Eli Schiff](http://www.elischiff.com/).
-
-Treeverse would not be possible without the excellent [d3.js](https://d3js.org/).
-Styling is powered by [Semantic UI](http://semantic-ui.com/). 
